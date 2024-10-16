@@ -4,27 +4,29 @@ const authenticateToken = require('../authenticate/authenticateToken'); // Impor
 const router = express.Router();
 
 // Contest creation endpoint (Protected)
-router.post('/create', authenticateToken, async (req, res) => {
-    const { contestData } = req.body;
-    
-    const {
+router.post('/create', async (req, res) => {
+    const { 
         ContestName,
         TopTeamLabel,
         LeftTeamLabel,
         square,
-        email,
+        firstName,
+        lastName,
+        email,    // Not checking email for uniqueness anymore
         rules,
         paymentMethod,
         PlayerPassword,
         contextImage,
-        prizeInfo
-    } = contestData;
+        prizeInfo 
+    } = req.body;
 
-    // Check if a contest with the same email or unique fields already exists
-    const existingContest = await Contest.findOne({ email });
+    console.log("data here", req.body);
+
+    // Check if a contest with the same ContestName already exists
+    const existingContest = await Contest.findOne({ ContestName });
   
     if (existingContest) {
-        return res.status(400).json({ message: 'A contest with this email already exists' });
+        return res.status(400).json({ message: 'A contest with this name already exists' });
     }
 
     const newContest = new Contest({
@@ -32,7 +34,9 @@ router.post('/create', authenticateToken, async (req, res) => {
         TopTeamLabel,
         LeftTeamLabel,
         square,
-        email,
+        firstName,
+        lastName,
+        email,    // Now multiple contests can be created with the same email
         rules,
         paymentMethod,
         PlayerPassword,
@@ -45,7 +49,7 @@ router.post('/create', authenticateToken, async (req, res) => {
         res.status(201).json({ message: 'Contest created successfully' });
     } catch (error) {
         if (error.code === 11000) {
-            return res.status(400).json({ message: 'Duplicate entry detected (email, rules, payment method, or prize info)' });
+            return res.status(400).json({ message: 'Duplicate entry detected (ContestName must be unique)' });
         }
         console.error('Error:', error);
         res.status(500).json({ message: 'An error occurred while creating the contest' });

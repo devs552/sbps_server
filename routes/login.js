@@ -1,24 +1,56 @@
+// routes/login.js
 const express = require('express');
-const User = require('../models/User');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const User = require('../models/User'); // Adjust the path to your User model as necessary
+const bcrypt = require('bcryptjs');
+
 const router = express.Router();
-<<<<<<< HEAD
-=======
 
->>>>>>> 04a69ebb558c4573901308209de7806805023681
-router.post('/', async (req, res) => {
-  const { loginData} = req.body;
-  const email= loginData.email;
-  const password = loginData.password;
-<<<<<<< HEAD
+// Initialize Passport Local Strategy
+passport.use(
+  new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
+    try {
+      const user = await User.findOne({ email });
 
-=======
->>>>>>> 04a69ebb558c4573901308209de7806805023681
-  const user = await User.findOne({ email, password });
-  if (user) {
-    res.json({ message: 'Login successful' });
-  } else {
-    res.status(401).json({ message: 'Invalid credentials' });
+      if (!user) {
+        return done(null, false, { message: 'No user found with that email' });
+      }
+
+      // Compare the password with the hashed password
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return done(null, false, { message: 'Incorrect password' });
+      }
+
+      // Successful authentication
+      return done(null, user);
+    } catch (err) {
+      return done(err);
+    }
+  })
+);
+
+// Serialize user into session
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+// Deserialize user from session
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) {
+    done(err);
   }
 });
+
+// Login Route
+router.post('/login', 
+  passport.authenticate('local', { failureRedirect: '/login' }),
+  function(req, res) {
+    res.redirect('http://localhost:3000/');
+    });
 
 module.exports = router;

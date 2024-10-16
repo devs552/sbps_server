@@ -4,19 +4,29 @@ const session = require('express-session'); // Import express-session
 const cors = require('cors');
 require('dotenv').config(); // Load environment variables
 const passport = require('passport'); // Import passport
-const app = express();
-app.use(cors());
-app.use(express.json()); // This replaces the need for bodyParser.json()
 
+const app = express();
+
+// CORS configuration
+app.use(cors({
+  origin: 'http://localhost:3000', // Replace with your frontend URL
+  credentials: true, // Allow credentials (cookies, etc.)
+}));
+
+app.use(express.json()); // Middleware to parse JSON bodies
+
+// Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET , // Use a strong secret key
+  secret: process.env.SESSION_SECRET, // Use a strong secret key
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // Set to true if using HTTPS
+  cookie: { secure: false } // Set to true if using HTTPS in production
 }));
+
 app.use(passport.initialize()); // Initialize passport
-app.use(passport.session());
-// Set up MongoDB connection
+app.use(passport.session()); // Use sessions for passport
+
+// MongoDB connection
 const mongoURI = process.env.MONGODB_URI; // Use environment variable for MongoDB URI
 mongoose.connect(mongoURI, {
   useNewUrlParser: true,
@@ -25,7 +35,7 @@ mongoose.connect(mongoURI, {
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Use route handlers
+// Route handlers
 const registerRouter = require('./routes/register');
 app.use('/register', registerRouter);
 
@@ -37,29 +47,19 @@ app.use('/forgot_password', forgotPasswordRouter);
 
 const contestRouter = require('./routes/contest');
 app.use('/contest', contestRouter);
+
 const googleLogin = require('./routes/GoogleLogin');
 app.use('/google_auth', googleLogin);
 
 const facebookLogin = require('./routes/FacebookLogin');
 app.use('/facebook_auth', facebookLogin);
+
 // Route to check if session is active
-app.get('/check-session', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.status(200).json({ message: 'Session is active', user: req.user });
-  } else {
-    res.status(401).json({ message: 'Session expired or user not authenticated' });
-  }
-});
-app.get('/logout', (req, res) => {
-  req.logout();  // For Passport.js, log out the user
-  req.session.destroy(err => {
-    if (err) {
-      return res.status(500).json({ message: 'Error logging out' });
-    }
-    res.clearCookie('connect.sid');  // Clear the session cookie
-    res.status(200).json({ message: 'Logged out successfully' });
-  });
-});
+const sessionRouter = require('./routes/session');
+app.use('/', sessionRouter);
+
+const logoutRouter = require('./routes/logout');
+app.use('/', logoutRouter);
 
 // Start the server
 const PORT = process.env.PORT || 5000; // Allow PORT to be set in the environment

@@ -1,16 +1,18 @@
 const mongoose = require('mongoose');
 
-const contestSchema = new mongoose.Schema({
-  ContestName: { type: String, required: true },
-  TopTeamLabel: { type: String, required: true },
-  LeftTeamLabel: { type: String, required: true },
-  square: { type: Number, required: true },
-  email: { type: String, required: true, unique: true },
-  rules: { type: String, required: true, unique: true },
-  paymentMethod: { type: String, required: true, unique: true },
-  PlayerPassword: { type: String, required: true },
-  contextImage: { type: String, required: false }, // Added field for context image
-  prizeInfo:  { type: String, required: true, unique: true },
-}, { timestamps: true });
+const ContestSchema = new mongoose.Schema({
+    ContestName: { type: String, required: true, unique: true }, // Enforcing uniqueness on ContestName
+    TopTeamLabel: { type: String, required: true },
+    LeftTeamLabel: { type: String, required: true },
+    square: { type: Number, required: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true }, // Not unique, multiple contests can be created with the same email
+    rules: { type: String },
+    paymentMethod: { type: String },
+    PlayerPassword: { type: String, required: true },
+    contextImage: { type: String },
+    prizeInfo: { type: String }
+});
 
-module.exports = mongoose.model('Contest', contestSchema);
+module.exports = mongoose.model('Contest', ContestSchema);
