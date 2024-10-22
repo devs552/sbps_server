@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ContestSchema = new mongoose.Schema({
-    ContestName: { type: String, required: true, unique: true }, // Enforcing uniqueness on ContestName
+    ContestName: { type: String, required: true }, // Enforcing uniqueness on ContestName
     TopTeamLabel: { type: String, required: true },
     LeftTeamLabel: { type: String, required: true },
     square: { type: Number, required: true },

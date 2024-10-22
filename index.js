@@ -17,10 +17,14 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET, // Use a strong secret key
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } // Set to true if using HTTPS in production
+  secret: process.env.SESSION_SECRET, // Use a strong secret for session security
+  resave: false, // Prevent resaving sessions unnecessarily
+  saveUninitialized: false, // Only save sessions when necessary
+  cookie: {
+    secure: false, // Set to true in production if using HTTPS
+    httpOnly: true, // Prevent JavaScript access to cookies (for security)
+    maxAge: 1000 * 60 * 60 * 24, // Set a suitable session expiration time (1 day here)
+  }
 }));
 
 app.use(passport.initialize()); // Initialize passport

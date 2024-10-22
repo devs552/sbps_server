@@ -1,4 +1,3 @@
-// routes/login.js
 const express = require('express');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -16,9 +15,11 @@ passport.use(
       if (!user) {
         return done(null, false, { message: 'No user found with that email' });
       }
-
+      let isMatch = false
       // Compare the password with the hashed password
-      const isMatch = await bcrypt.compare(password, user.password);
+      if(password === user.password){
+        isMatch=true;
+      }
       if (!isMatch) {
         return done(null, false, { message: 'Incorrect password' });
       }
@@ -47,10 +48,25 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // Login Route
-router.post('/login', 
-  passport.authenticate('local', { failureRedirect: '/login' }),
-  function(req, res) {
-    res.redirect('http://localhost:3000/');
+router.post('/', (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      return res.status(500).json({ message: 'Server error', error: err });
+    }
+    if (!user) {
+      return res.status(401).json({ message: info.message || 'Unauthorized' }); // Send Unauthorized status
+    }
+
+    // Manually log in the user after successful authentication
+    req.logIn(user, (err) => {
+      if (err) {
+        return res.status(500).json({ message: 'Login failed', error: err });
+      }
+
+      // Login success
+      return res.status(200).json({ message: 'Login successful', user });
     });
+  })(req, res, next);
+});
 
 module.exports = router;

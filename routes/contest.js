@@ -23,11 +23,11 @@ router.post('/create', async (req, res) => {
     console.log("data here", req.body);
 
     // Check if a contest with the same ContestName already exists
-    const existingContest = await Contest.findOne({ ContestName });
+    // const existingContest = await Contest.findOne({ ContestName });
   
-    if (existingContest) {
-        return res.status(400).json({ message: 'A contest with this name already exists' });
-    }
+    // if (existingContest) {
+    //     return res.status(400).json({ message: 'A contest with this name already exists' });
+    // }
 
     const newContest = new Contest({
         ContestName,
@@ -57,7 +57,7 @@ router.post('/create', async (req, res) => {
 });
 
 // View All Contests (Protected)
-router.get('/view', authenticateToken, async (req, res) => {
+router.get('/view', async (req, res) => {
     try {
         const contests = await Contest.find();
         res.status(200).json(contests);
@@ -68,7 +68,7 @@ router.get('/view', authenticateToken, async (req, res) => {
 });
 
 // Search Contest by specific field (Protected)
-router.get('/search', authenticateToken, async (req, res) => {
+router.get('/search', async (req, res) => {
     const { ContestName, email, TopTeamLabel } = req.query;
 
     try {
